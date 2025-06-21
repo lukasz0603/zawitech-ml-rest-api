@@ -12,24 +12,35 @@ def predict_rain():
         "latitude": 51.25,  # Lublin
         "longitude": 22.57,
         "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max",
-        "forecast_days": 30,
+        "forecast_days": 16,  # ✅ MAX dla Open-Meteo (30 nie działa!)
         "timezone": "auto"
     }
 
-    response = requests.get(url, params=params)
-    data = response.json()
-    daily = data['daily']
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
 
-    prediction = []
-    for i in range(len(daily["time"])):
-        prob = daily["precipitation_probability_max"][i]
-        risk = "WYSOKIE" if prob > 50 else "NISKIE"
-        prediction.append({
-            "data": daily["time"][i],
-            "temp_max": daily["temperature_2m_max"][i],
-            "temp_min": daily["temperature_2m_min"][i],
-            "szansa_opadu": prob,
-            "ryzyko": risk
-        })
+        if "daily" not in data:
+            return jsonify({"error": "Brak danych 'daily' w odpowiedzi"}), 500
 
-    return jsonify(prediction)
+        daily = data["daily"]
+        prediction = []
+
+        for i in range(len(daily["time"])):
+            prob = daily["precipitation_probability_max"][i]
+            risk = "WYSOKIE" if prob > 50 else "NISKIE"
+            prediction.append({
+                "data": daily["time"][i],
+                "temp_max": daily["temperature_2m_max"][i],
+                "temp_min": daily["temperature_2m_min"][i],
+                "szansa_opadu": prob,
+                "ryzyko": risk
+            })
+
+        return jsonify(prediction)
+
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": "Błąd HTTP: " + str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": "Błąd aplikacji: " + str(e)}), 500
