@@ -1,30 +1,33 @@
-# app.py
 from flask import Flask, jsonify
 import requests
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app) 
+CORS(app)
 
 @app.route("/predict", methods=["GET"])
 def predict_rain():
     url = "https://api.open-meteo.com/v1/forecast"
     params = {
-        "latitude": 52.23,  # Warszawa
-        "longitude": 21.01,
-        "hourly": "precipitation_probability",
-        "forecast_days": 1
+        "latitude": 51.25,  # Lublin
+        "longitude": 22.57,
+        "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+        "forecast_days": 30,
+        "timezone": "auto"
     }
 
     response = requests.get(url, params=params)
     data = response.json()
-    hourly = data['hourly']
+    daily = data['daily']
 
     prediction = []
-    for time, prob in zip(hourly["time"], hourly["precipitation_probability"]):
+    for i in range(len(daily["time"])):
+        prob = daily["precipitation_probability_max"][i]
         risk = "WYSOKIE" if prob > 50 else "NISKIE"
         prediction.append({
-            "czas": time,
+            "data": daily["time"][i],
+            "temp_max": daily["temperature_2m_max"][i],
+            "temp_min": daily["temperature_2m_min"][i],
             "szansa_opadu": prob,
             "ryzyko": risk
         })
