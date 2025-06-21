@@ -26,7 +26,11 @@ def predict_weather():
     params = {
         "latitude": coords["latitude"],
         "longitude": coords["longitude"],
-        "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+        "daily": (
+            "temperature_2m_max,temperature_2m_min,"
+            "precipitation_probability_max,wind_speed_10m_max,"
+            "relative_humidity_2m_max,cloud_cover_mean"
+        ),
         "forecast_days": 16,
         "timezone": "Europe/Warsaw"
     }
@@ -48,7 +52,10 @@ def predict_weather():
                 "temp_max": daily["temperature_2m_max"][i],
                 "temp_min": daily["temperature_2m_min"][i],
                 "szansa_opadu": prob,
-                "ryzyko": risk
+                "ryzyko": risk,
+                "wind_speed": daily["wind_speed_10m_max"][i],
+                "humidity": daily["relative_humidity_2m_max"][i],
+                "cloud_cover": daily["cloud_cover_mean"][i]
             })
 
         return jsonify(result)
