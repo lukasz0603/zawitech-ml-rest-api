@@ -4,7 +4,7 @@ import requests
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app, origins=["https://zawitech.pl"])
+CORS(app) 
 
 @app.route("/predict", methods=["GET"])
 def predict_rain():
